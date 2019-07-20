@@ -123,7 +123,7 @@ resource "null_resource" "ansible-hosts" {
 
   provisioner "local-exec" {
     command = <<HOSTS
-    echo '${data.template_file.ansible_hosts.rendered}' > ansible_hosts.cfg
+    echo '${data.template_file.ansible_hosts.rendered}' > ansible_hosts
     HOSTS
   }
 }
