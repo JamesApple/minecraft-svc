@@ -1,0 +1,13 @@
+- name: Manage Packages
+  apt:
+    state: "latest"
+    name: "{{ packages }}"
+    autoclean: True
+    autoremove: True
+    force_apt_get: True
+    update_cache: True
+    cache_valid_time: 3600
+    install_recommends: False
+  vars:
+    packages: ['vim', 'tmux', 'wget', 'default-jre-headless']
+  become: True

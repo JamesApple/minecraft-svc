@@ -1,0 +1,28 @@
+---
+  # vars:
+  #   apt_packages: ['vim', 'tmux', 'wget', 'java-1.8.0-openjdk-devel.x86_64']
+  #   mcs_dir: /root/minecraftserver
+  #   mcs_jar: minecraft_server.1.12.2.jar
+  #   session_name: mcserver
+# https://www.feed-the-beast.com/projects/ftb-presents-direwolf20-1-12/files/2690320/download
+
+- name: Primary Minecraft Server
+  hosts: app
+  user: jamesapple
+  roles:
+    - java-base
+    - role: gcp-disk
+      vars:
+        disk_name: google-app-server
+        mount_path: "/home/minecraft"
+    - role: minecraft-server
+      vars:
+        server_package_url: 'https://www.feed-the-beast.com/projects/ftb-presents-direwolf20-1-12/files/2690320/download'
+        destination_folder: '/home/minecraft/server'
+        server_tmux_session_name: 'minecraft-server'
+
+
+
+
+
+

@@ -1,0 +1,21 @@
+---
+- name: Create filesystem on {{ disk_name }}
+  filesystem:
+    fstype: ext4
+    dev: "/dev/disk/by-id/{{ disk_name }}"
+  become: yes
+
+- name: Create Mount Path
+  file:
+    path: "{{ mount_path }}"
+    state: directory
+    mode: '0755'
+
+- name: Mount {{ disk_name }} to {{ mount_path }}
+  mount:
+    path: "{{ mount_path }}"
+    src: "/dev/disk/by-id/{{ disk_name }}"
+    fstype: ext4
+    opts: defaults
+    state: mounted
+  become: yes

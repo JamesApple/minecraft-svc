@@ -1,0 +1,36 @@
+---
+- name: Create Server Directory
+  become: True
+  file:
+    path: "{{ destination_folder }}"
+    state: directory
+    mode: '0755'
+
+
+- name: Download server package
+  become: True
+  unarchive:
+    src: "{{ server_package_url }}"
+    dest: "{{ destination_folder }}"
+    creates: "{{ destination_folder }}/ServerStart.sh"
+    remote_src: yes
+
+- name: Agree to EULA
+  become: True
+  template:
+    src: './eula.txt'
+    dest: "{{ destination_folder }}/eula.txt"
+
+- name: Check running Tmux sessions
+  become: True
+  shell: tmux ls
+  register: tmux_sessions
+  failed_when: '"No such" in tmux_sessions.stdout'
+
+- name: Start tmux session with server
+  become: True
+  shell: 
+    cmd: "tmux new-session -d -s minecraft-server 'chmod a+x ./ServerStart.sh && ./ServerStart.sh'"
+    chdir: "{{ destination_folder }}"
+  when: '"minecraft-server" not in tmux_sessions.stdout'
+
