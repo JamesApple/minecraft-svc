@@ -1,6 +1,5 @@
 ---
 - name: Create Server Directory
-  become: True
   register: create_server_dir
   file:
     path: "{{ destination_folder }}"
@@ -8,50 +7,38 @@
     mode: '0755'
 
 - name: Download server package
-  become: True
   unarchive:
     src: "{{ server_package_url }}"
     dest: "{{ destination_folder }}"
     creates: "{{ destination_folder }}/ServerStart.sh"
     remote_src: yes
 
-- name: Create Config Directory
-  become: True
-  file:
-    path: "{{ config_folder }}"
-    state: directory
-    mode: '0755'
-
-- name: Move Config
-  command: "mv {{ destination_folder }}/config {{ config_folder }}"
-  register: move_config
-  when: create_server_dir.changed
-
-- name: Symlink Config
-  file: 
-    src: "{{ config_folder }}"
-    dest: "{{ destination_folder }}/config"
-    state: link
-  when: move_config.changed
-
 - name: Agree to EULA
-  become: True
   template:
     src: './eula.txt'
     dest: "{{ destination_folder }}/eula.txt"
 
 - name: Check running Tmux sessions
-  become: True
-  shell: tmux ls
+  command: tmux ls
   register: tmux_sessions
   failed_when: '"No such" in tmux_sessions.stdout'
+  changed_when: '"minecraft-server" not in tmux_sessions.stdout'
 
 - name: Start tmux session with server
-  become: True
   shell: 
     cmd: "tmux new-session -d -s minecraft-server 'chmod a+x ./ServerStart.sh && ./ServerStart.sh'"
     chdir: "{{ destination_folder }}"
   when: '"minecraft-server" not in tmux_sessions.stdout'
 
+- name: Upload server backup script
+  template:
+    src: './backup.sh'
+    dest: "/home/minecraft/backup.sh"
 
+- name: Run backup script
+  cron:
+    name: 'app backup'
+    minute: '0'
+    user: root
+    job: '/home/minecraft/backup.sh'
 

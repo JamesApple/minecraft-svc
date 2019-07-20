@@ -28,10 +28,37 @@ resource "google_storage_bucket" "tf-state" {
   }
 }
 
+resource "google_storage_bucket" "backups" {
+  name     = "backups-${data.google_project.minecraft.project_id}"
+  location = "australia-southeast1"
+  storage_class = "NEARLINE"
+  versioning {
+    enabled = true
+  }
+
+  lifecycle_rule {
+    action {
+      type = "Delete"
+    }
+
+    condition {
+      num_newer_versions = 100
+    }
+  }
+}
+
+
+resource "google_storage_bucket_iam_member" "app-backups" {
+  bucket = google_storage_bucket.backups.name
+  role   = "roles/storage.objectAdmin"
+  member = "serviceAccount:${google_service_account.app-server.email}"
+}
+
 data "google_compute_image" "debian_image" {
   family  = "debian-9"
   project = "debian-cloud"
 }
+
 
 resource "google_compute_instance" "default" {
   depends_on   = [google_project_service.compute]
@@ -131,3 +158,4 @@ resource "null_resource" "ansible-hosts" {
 output "disk-name" {
   value = google_compute_disk.app-server.name
 }
+
